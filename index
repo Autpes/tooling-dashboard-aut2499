@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tooling Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+      color: #e8f4f8;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+    }
+    
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+    
+    .sidebar {
+      width: 280px;
+      background: rgba(15, 32, 39, 0.95);
+      backdrop-filter: blur(10px);
+      border-right: 2px solid #4a90e2;
+      padding: 20px;
+      overflow-y: auto;
+      box-shadow: 5px 0 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .sidebar h2 {
+      color: #87ceeb;
+      margin-bottom: 20px;
+      font-size: 1.3em;
+      text-align: center;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #4a90e2;
+    }
+    
+    .menu-item {
+      background: linear-gradient(145deg, #1e3a8a, #1e40af);
+      margin-bottom: 10px;
+      padding: 12px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 1px solid #3b82f6;
+    }
+    
+    .menu-item:hover {
+      background: linear-gradient(145deg, #2563eb, #3b82f6);
+      transform: translateX(5px);
+      box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+    }
+    
+    .menu-item.active {
+      background: linear-gradient(145deg, #3b82f6, #60a5fa);
+      border-color: #87ceeb;
+    }
+    
+    .menu-item h4 {
+      color: #ffffff;
+      margin-bottom: 5px;
+      font-size: 0.95em;
+    }
+    
+    .menu-item p {
+      color: #bfdbfe;
+      font-size: 0.8em;
+      opacity: 0.8;
+    }
+    
+    .main-content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      background: rgba(30, 58, 138, 0.3);
+      padding: 20px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid #4a90e2;
+    }
+    
+    h1 {
+      margin: 0;
+      font-size: 2em;
+      color: #87ceeb;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    
+    #updateTime {
+      font-size: 0.9em;
+      color: #bfdbfe;
+      background: rgba(59, 130, 246, 0.2);
+      padding: 8px 12px;
+      border-radius: 6px;
+    }
+    
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    
+    .card {
+      background: linear-gradient(145deg, rgba(30, 58, 138, 0.4), rgba(59, 130, 246, 0.2));
+      padding: 20px;
+      border-radius: 15px;
+      border: 2px solid #4a90e2;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(74, 144, 226, 0.3);
+      border-color: #87ceeb;
+    }
+    
+    .card h3 {
+      background: linear-gradient(45deg, #2563eb, #3b82f6);
+      color: #ffffff;
+      padding: 12px;
+      border-radius: 10px;
+      margin: 0 0 15px;
+      font-size: 1.1em;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .card p {
+      color: #e0f2fe;
+      margin-bottom: 8px;
+      font-size: 0.9em;
+    }
+    
+    .tools {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 15px;
+    }
+    
+    .tool {
+      background: linear-gradient(145deg, rgba(30, 64, 175, 0.6), rgba(37, 99, 235, 0.4));
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #60a5fa;
+      transition: all 0.3s ease;
+    }
+    
+    .tool:hover {
+      background: linear-gradient(145deg, rgba(37, 99, 235, 0.7), rgba(59, 130, 246, 0.5));
+      transform: scale(1.02);
+    }
+    
+    .tool-title {
+      font-size: 12px;
+      color: #bfdbfe;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+    
+    .tool p {
+      font-size: 11px;
+      color: #e0f2fe;
+      margin-bottom: 4px;
+    }
+    
+    .chart-wrapper, .small-chart-wrapper {
+      position: relative;
+      margin: 10px auto;
+    }
+    
+    .chart-wrapper {
+      width: 120px;
+      height: 120px;
+    }
+    
+    .small-chart-wrapper {
+      width: 70px;
+      height: 70px;
+    }
+    
+    .chart-label {
+      position: absolute;
+      font-size: 13px;
+      font-weight: bold;
+      color: #ffffff;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    }
+    
+    .small-chart-wrapper .chart-label {
+      font-size: 10px;
+    }
+    
+    .detail-view {
+      display: none;
+      background: linear-gradient(145deg, rgba(30, 58, 138, 0.6), rgba(59, 130, 246, 0.3));
+      border-radius: 15px;
+      padding: 25px;
+      border: 2px solid #4a90e2;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+    
+    .detail-view.active {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .detail-header {
+      text-align: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #4a90e2;
+    }
+    
+    .detail-header h2 {
+      color: #87ceeb;
+      font-size: 1.8em;
+      margin-bottom: 10px;
+    }
+    
+    .detail-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+    
+    .stat-card {
+      background: linear-gradient(145deg, rgba(30, 64, 175, 0.4), rgba(37, 99, 235, 0.2));
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid #60a5fa;
+      text-align: center;
+    }
+    
+    .stat-title {
+      color: #bfdbfe;
+      font-size: 0.9em;
+      margin-bottom: 8px;
+    }
+    
+    .stat-value {
+      color: #ffffff;
+      font-size: 1.4em;
+      font-weight: bold;
+    }
+    
+    .back-btn {
+      background: linear-gradient(45deg, #ef4444, #dc2626);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9em;
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+    }
+    
+    .back-btn:hover {
+      background: linear-gradient(45deg, #dc2626, #b91c1c);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+      
+      .sidebar {
+        width: 100%;
+        height: auto;
+      }
+      
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+      
+      h1 {
+        font-size: 1.5em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <h2>🔧 รายละเอียดเครื่องจักร</h2>
+      <div id="machineMenu"></div>
+    </div>
+    
+    <div class="main-content">
+      <header>
+        <h1>🏭 TOOLING LIFE CONTROL</h1>
+        <div id="updateTime">อัปเดตเมื่อ ...</div>
+      </header>
+
+      <div id="dashboardView">
+        <div class="dashboard" id="dashboard"></div>
+      </div>
+      
+      <div id="detailView" class="detail-view"></div>
+    </div>
+  </div>
+
+  <script>
+    const sheetUrl = 'https://docs.google.com/spreadsheets/d/18kEYBNjeBspEga3GuAllh2K_efaIJjDL-N-MWBPvkyU/gviz/tq?tqx=out:json';
+    const CLEAN_TARGET_MACHINE = 2000000;
+    const CLEAN_TARGET_TOOLS = 5000000;
+    
+    let machinesData = [];
+    let currentView = 'dashboard';
+    let selectedMachine = null;
+
+    function convertSerialToDate(serial) {
+      const baseDate = new Date(Date.UTC(1899, 11, 30));
+      baseDate.setUTCDate(baseDate.getUTCDate() + Math.floor(serial));
+      return baseDate.toLocaleDateString('th-TH', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    }
+
+    function createChart(id, val, max, isBlue = true) {
+      const colors = isBlue ? ['#3b82f6', '#1e3a8a'] : ['#0f830f', '#ffffff'];
+      new Chart(document.getElementById(id), {
+        type: 'doughnut',
+        data: {
+          datasets: [{
+            data: [val, Math.max(0, max - val)],
+            backgroundColor: colors,
+            borderWidth: 2,
+            borderColor: '#87ceeb'
+          }]
+        },
+        options: {
+          cutout: '70%',
+          plugins: {
+            tooltip: { enabled: false },
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    function showMachineDetail(machineIndex) {
+      const machine = machinesData[machineIndex];
+      if (!machine) return;
+      
+      selectedMachine = machine;
+      document.getElementById('dashboardView').style.display = 'none';
+      const detailView = document.getElementById('detailView');
+      detailView.className = 'detail-view active';
+      
+      detailView.innerHTML = `
+        <button class="back-btn" onclick="showDashboard()">← กลับสู่หน้าหลัก</button>
+        <div class="detail-header">
+          <h2>${machine.name}</h2>
+          <p>รายละเอียดและสถิติการใช้งาน</p>
+        </div>
+        
+        <div class="detail-stats">
+          <div class="stat-card">
+            <div class="stat-title">ความเร็วปัจจุบัน</div>
+            <div class="stat-value">${machine.sp} SPM</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">จำนวน Stroke ปัจจุบัน</div>
+            <div class="stat-value">${Number(machine.cs).toLocaleString()}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">เป้าหมาย Stroke</div>
+            <div class="stat-value">${CLEAN_TARGET_MACHINE.toLocaleString()}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">ความคืบหน้า</div>
+            <div class="stat-value">${((machine.cs / CLEAN_TARGET_MACHINE) * 100).toFixed(1)}%</div>
+          </div>
+        </div>
+        
+        <div class="tools">
+          <div class="tool">
+            <div class="tool-title">🔪 มีดเจาะ</div>
+            <div class="small-chart-wrapper">
+              <canvas id="detail-d1"></canvas>
+              <div class="chart-label">${((machine.d1 / CLEAN_TARGET_TOOLS) * 100).toFixed(1)}%</div>
+            </div>
+            <p>จำนวน: ${Number(machine.d1).toLocaleString()}</p>
+            <p>ทำความสะอาดครั้งสุดท้าย: ${machine.ld1}</p>
+          </div>
+          <div class="tool">
+            <div class="tool-title">⚔️ มีดซอยแถว</div>
+            <div class="small-chart-wrapper">
+              <canvas id="detail-d2"></canvas>
+              <div class="chart-label">${((machine.d2 / CLEAN_TARGET_TOOLS) * 100).toFixed(1)}%</div>
+            </div>
+            <p>จำนวน: ${Number(machine.d2).toLocaleString()}</p>
+            <p>ทำความสะอาดครั้งสุดท้าย: ${machine.ld2}</p>
+          </div>
+          <div class="tool">
+            <div class="tool-title">🗡️ มีดข้าง</div>
+            <div class="small-chart-wrapper">
+              <canvas id="detail-d3"></canvas>
+              <div class="chart-label">${((machine.d3 / CLEAN_TARGET_TOOLS) * 100).toFixed(1)}%</div>
+            </div>
+            <p>จำนวน: ${Number(machine.d3).toLocaleString()}</p>
+            <p>ทำความสะอาดครั้งสุดท้าย: ${machine.ld3}</p>
+          </div>
+          <div class="tool">
+            <div class="tool-title">⚡ มีดหน้า</div>
+            <div class="small-chart-wrapper">
+              <canvas id="detail-tms"></canvas>
+              <div class="chart-label">${((machine.tms / CLEAN_TARGET_TOOLS) * 100).toFixed(1)}%</div>
+            </div>
+            <p>จำนวน: ${Number(machine.tms).toLocaleString()}</p>
+            <p>ทำความสะอาดครั้งสุดท้าย: ${machine.ltms}</p>
+          </div>
+        </div>
+      `;
+      
+      // Create charts for detail view
+      setTimeout(() => {
+        createChart('detail-d1', machine.d1, CLEAN_TARGET_TOOLS);
+        createChart('detail-d2', machine.d2, CLEAN_TARGET_TOOLS);
+        createChart('detail-d3', machine.d3, CLEAN_TARGET_TOOLS);
+        createChart('detail-tms', machine.tms, CLEAN_TARGET_TOOLS);
+      }, 100);
+      
+      // Update menu active state
+      updateMenuActiveState(machineIndex);
+    }
+
+    function showDashboard() {
+      document.getElementById('dashboardView').style.display = 'block';
+      document.getElementById('detailView').className = 'detail-view';
+      updateMenuActiveState(-1);
+    }
+
+    function updateMenuActiveState(activeIndex) {
+      const menuItems = document.querySelectorAll('.menu-item');
+      menuItems.forEach((item, index) => {
+        item.classList.toggle('active', index === activeIndex);
+      });
+    }
+
+    function createMenu() {
+      const menu = document.getElementById('machineMenu');
+      menu.innerHTML = '';
+      
+      machinesData.forEach((machine, index) => {
+        const menuItem = document.createElement('div');
+        menuItem.className = 'menu-item';
+        menuItem.onclick = () => showMachineDetail(index);
+        
+        const progress = ((machine.cs / CLEAN_TARGET_MACHINE) * 100).toFixed(1);
+        const status = progress >= 80 ? '🔴 ใกล้ถึงเป้าหมาย' : progress >= 50 ? '🟡 ใช้งานปกติ' : '🟢 สภาพดี';
+        
+        menuItem.innerHTML = `
+          <h4>${machine.name}</h4>
+          <p>${status} (${progress}%)</p>
+        `;
+        
+        menu.appendChild(menuItem);
+      });
+    }
+
+    fetch(sheetUrl)
+      .then(r => r.text())
+      .then(t => {
+        const json = JSON.parse(t.substr(47).slice(0, -2));
+        const rows = json.table.rows;
+        document.getElementById('updateTime').innerText = 'อัปเดตเมื่อ ' + new Date().toLocaleString('th-TH');
+        const dash = document.getElementById('dashboard');
+
+        rows.forEach((row, idx) => {
+          const c = row.c;
+          if (!c[0] || !c[0].v) return;
+
+          const machine = {
+            name: c[0].v,
+            cs: c[1]?.v || 0,
+            sp: c[2]?.v || 0,
+            lc: typeof c[3]?.v === 'number' ? convertSerialToDate(c[3].v) : (c[3]?.v || '-'),
+            d1: c[4]?.v || 0,
+            d2: c[5]?.v || 0,
+            d3: c[6]?.v || 0,
+            tms: c[7]?.v || 0,
+            ld1: typeof c[8]?.v === 'number' ? convertSerialToDate(c[8].v) : (c[8]?.v || '-'),
+            ld2: typeof c[9]?.v === 'number' ? convertSerialToDate(c[9].v) : (c[9]?.v || '-'),
+            ld3: typeof c[10]?.v === 'number' ? convertSerialToDate(c[10].v) : (c[10]?.v || '-'),
+            ltms: typeof c[11]?.v === 'number' ? convertSerialToDate(c[11].v) : (c[11]?.v || '-')
+          };
+
+          machinesData.push(machine);
+
+          const percent = ((machine.cs / CLEAN_TARGET_MACHINE) * 100).toFixed(1);
+
+          const div = document.createElement('div');
+          div.className = 'card';
+          div.innerHTML = `
+            <h3>${machine.name}</h3>
+            <p>Speed: ${machine.sp} SPM</p>
+            <p>Current Stroke: ${Number(machine.cs).toLocaleString()}</p>
+            <p>Target: ${CLEAN_TARGET_MACHINE.toLocaleString()} Stroke</p>
+            <p>Last Cleaned: ${machine.lc}</p>
+            <div class="chart-wrapper">
+              <canvas id="main-${idx}"></canvas>
+              <div class="chart-label">${percent}%</div>
+            </div>
+            <div class="tools">
+              <div class="tool">
+                <div class="tool-title">มีดเจาะ</div>
+                <div class="small-chart-wrapper">
+                  <canvas id="d1-${idx}"></canvas>
+                  <div class="chart-label">${((machine.d1 / CLEAN_TARGET_TOOLS) * 100).toFixed(1)}%</div>
+                </div>
+                <p>${Number(machine.d1).toLocaleString()}</p>
+                <p>Last: ${machine.ld1}</p>
+              </div>
+              <div class="tool">
+                <div class="tool-title">มีดซอยแถว</div>
+                <div class="small-chart-wrapper">
+                  <canvas id="d2-${idx}"></canvas>
+                  <div class="chart-label">${((machine.d2 / CLEAN_TARGET_TOOLS) * 100).toFixed(1)}%</div>
+                </div>
+                <p>${Number(machine.d2).toLocaleString()}</p>
+                <p>Last: ${machine.ld2}</p>
+              </div>
+              <div class="tool">
+                <div class="tool-title">มีดข้าง</div>
+                <div class="small-chart-wrapper">
+                  <canvas id="d3-${idx}"></canvas>
+                  <div class="chart-label">${((machine.d3 / CLEAN_TARGET_TOOLS) * 100).toFixed(1)}%</div>
+                </div>
+                <p>${Number(machine.d3).toLocaleString()}</p>
+                <p>Last: ${machine.ld3}</p>
+              </div>
+              <div class="tool">
+                <div class="tool-title">มีดหน้า</div>
+                <div class="small-chart-wrapper">
+                  <canvas id="tms-${idx}"></canvas>
+                  <div class="chart-label">${((machine.tms / CLEAN_TARGET_TOOLS) * 100).toFixed(1)}%</div>
+                </div>
+                <p>${Number(machine.tms).toLocaleString()}</p>
+                <p>Last: ${machine.ltms}</p>
+              </div>
+            </div>
+          `;
+          dash.appendChild(div);
+
+          createChart(`main-${idx}`, machine.cs, CLEAN_TARGET_MACHINE);
+          createChart(`d1-${idx}`, machine.d1, CLEAN_TARGET_TOOLS);
+          createChart(`d2-${idx}`, machine.d2, CLEAN_TARGET_TOOLS);
+          createChart(`d3-${idx}`, machine.d3, CLEAN_TARGET_TOOLS);
+          createChart(`tms-${idx}`, machine.tms, CLEAN_TARGET_TOOLS);
+        });
+        
+        createMenu();
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+        document.getElementById('updateTime').innerText = 'เกิดข้อผิดพลาดในการโหลดข้อมูล';
+      });
+  </script>
+</body>
+</html>
